@@ -37,43 +37,59 @@
       </div>
     </header>
 
-    <swiper
-      :slidesPerView="2.2"
-      :loop="true"
-      :spaceBetween="270"
-      :centeredSlides="true"
-      :autoplay="{
-        delay: 2500,
-        disableOnInteraction: false,
-      }"
-      :pagination="{
-        clickable: true,
-      }"
-      :navigation="true"
-      :modules="modules"
-      class="mySwiper"
-    >
-      <swiper-slide v-for="(item, idx) in data" :key="idx" class="slide">
-        <a :href="item.link">
-          <p class="S_pic"><img :src="item.image" /></p>
-          <div class="S_text">
-            <b v-html="item.title"></b>
-          </div>
-        </a>
-      </swiper-slide>
-    </swiper>
+    <!-- 로딩 화면 표출 공통 영역 -->
+    <div v-if="isLoading" class="loading_container">
+      <div class="spinner"></div>
+      <p>뉴스 데이터를 불러오는 중입니다...</p>
+    </div>
 
-    <ul class="content">
-      <li v-for="(item, idx) in data" :key="idx">
-        <a :href="item.link">
-          <p class="pic"><img :src="item.image" /></p>
-          <div class="text">
-            <b v-html="item.title"></b>
-            <p v-html="item.description"></p>
-          </div>
-        </a>
-      </li>
-    </ul>
+    <template v-else>
+      <!-- 데이터가 없을 때의 노출 화면 -->
+      <div v-if="data.length === 0" class="no_data_container">
+        <p class="no_data_text">검색 결과가 없습니다.</p>
+      </div>
+
+      <!-- 데이터가 있을 때만 Swiper와 리스트 바인딩 -->
+      <template v-else>
+        <swiper
+          :slidesPerView="2.2"
+          :loop="true"
+          :spaceBetween="270"
+          :centeredSlides="true"
+          :autoplay="{
+            delay: 2500,
+            disableOnInteraction: false,
+          }"
+          :pagination="{
+            clickable: true,
+          }"
+          :navigation="true"
+          :modules="modules"
+          class="mySwiper"
+        >
+          <swiper-slide v-for="(item, idx) in data" :key="idx" class="slide">
+            <a :href="item.link">
+              <p class="S_pic"><img :src="item.image" /></p>
+              <div class="S_text">
+                <b v-html="item.title"></b>
+              </div>
+            </a>
+          </swiper-slide>
+        </swiper>
+
+        <ul class="content">
+          <li v-for="(item, idx) in data" :key="idx">
+            <a :href="item.link">
+              <p class="pic"><img :src="item.image" /></p>
+              <div class="text">
+                <b v-html="item.title"></b>
+                <p v-html="item.description"></p>
+              </div>
+            </a>
+          </li>
+        </ul>
+      </template>
+    </template>
   </div>
 </template>
 
@@ -89,7 +105,8 @@ export default {
     return { 
       data: [], 
       keyword: '축구',
-      isSearchOpen: false // 검색창 상태 관리 변수
+      isSearchOpen: false, // 검색창 상태 관리 변수
+      isLoading: false     // 로딩 상태 변수 추가
     }
   }, 
   methods: {
@@ -105,11 +122,17 @@ export default {
       this.isSearchOpen = false; // 검색창 닫기 추가
     },
     newsList() {      
+      this.isLoading = true; // 로딩 시작 처리
       fetch(`https://r-todolist.vercel.app/news?keyword=${this.keyword}`)
       .then(res=>res.json())
       .then(res=>{
         this.data = res;      
+        this.isLoading = false; // 로딩 완료 처리
       })
+      .catch(err => {
+        console.error(err);
+        this.isLoading = false; // 에러 발생 시에도 로딩 취소
+      });
     }
   },
   mounted() {
@@ -130,9 +153,8 @@ export default {
 
 <style>
   body {
-    margin: 0 auto;
+    margin: 0;
     padding: 0;  
-    max-width: 400px;    
   }
 
   header{
@@ -271,5 +293,44 @@ export default {
   }
   .swiper-pagination-bullet{
     display: none;
+  }
+
+  /* --- 추가 요청 디자인 속성 영역 (기존 스타일 보존용) --- */
+  .loading_container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 100px 0;
+    color: #555;
+    font-size: 14px;
+  }
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(0, 40, 133, 0.1);
+    border-top: 4px solid rgb(0, 40, 133);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 15px;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .no_data_container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 120px 0;
+  }
+
+  .no_data_text {
+    font-size: 15px;
+    color: #888;
+    font-weight: 500;
   }
 </style>
