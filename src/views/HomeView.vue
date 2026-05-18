@@ -105,7 +105,7 @@ export default {
       this.isSearchOpen = false; // 검색창 닫기 추가
     },
     newsList() {      
-      fetch(`http://localhost:4000/news?keyword=${this.keyword}`)
+      fetch(`https://r-todolist.vercel.app/news?keyword=${this.keyword}`)
       .then(res=>res.json())
       .then(res=>{
         this.data = res;      
