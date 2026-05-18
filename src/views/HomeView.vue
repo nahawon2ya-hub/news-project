@@ -130,8 +130,9 @@ export default {
 
 <style>
   body {
-    margin: 0;
+    margin: 0 auto;
     padding: 0;  
+    max-width: 400px;    
   }
 
   header{
